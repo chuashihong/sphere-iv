@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
-import supabase from '../utils/supabaseClient'; // Adjust the path based on your file structure
+import supabase from '../utils/supabaseClient'; // Adjust path as needed
 
 const Signup = () => {
-  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
   const [message, setMessage] = useState('');
 
   const handleSignup = async (e) => {
     e.preventDefault();
-    setMessage(''); // Clear any previous messages
+    setMessage('');
 
     try {
       // Create a new user in Supabase Auth
@@ -20,14 +20,15 @@ const Signup = () => {
 
       if (error) throw error;
 
-      // Optionally: Insert additional user details into a 'users' table
+      // Insert user into 'users' table with the same ID as Auth
+      const userId = data.user.id;
       const { error: insertError } = await supabase
         .from('users')
-        .insert([{ username, email }]);
+        .insert([{ id: userId, email, username }]);
 
       if (insertError) throw insertError;
 
-      setMessage('Signup successful! Check your email for verification.');
+      setMessage('Signup successful! You can now log in.');
     } catch (error) {
       console.error('Signup error:', error.message);
       setMessage(`Error: ${error.message}`);
