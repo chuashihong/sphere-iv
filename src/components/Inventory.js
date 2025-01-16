@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import supabase from "../utils/supabaseClient";
-import userService from "../utils/userService"; // Reuse userService for user operations
+import { createClient } from "@supabase/supabase-js";
 
-const Home = () => {
-  const [username, setUsername] = useState('');
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const Inventory = () => {
   const [products, setProducts] = useState([]);
   const [newProduct, setNewProduct] = useState({
     name: "",
@@ -13,29 +13,7 @@ const Home = () => {
   });
   const [loading, setLoading] = useState(false);
 
-  // Fetch username on component mount
-  useEffect(() => {
-    const fetchUserDetails = async () => {
-      const { data: user, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) {
-        console.error("Error fetching user:", userError?.message || "No user found.");
-        setUsername("Guest");
-        return;
-      }
-
-      const { data: profile, error: profileError } = await userService.getUserById(user.id);
-      if (profileError) {
-        console.error("Error fetching profile:", profileError.message);
-        setUsername("Guest");
-      } else {
-        setUsername(profile?.username || "Guest");
-      }
-    };
-
-    fetchUserDetails();
-  }, []);
-
-  // Fetch inventory products
+  // Fetch products
   const fetchProducts = async () => {
     setLoading(true);
     const { data, error } = await supabase.from("products").select("*");
@@ -74,18 +52,16 @@ const Home = () => {
     }
   };
 
-  // Load inventory on component mount
+  // Load products on page load
   useEffect(() => {
     fetchProducts();
   }, []);
 
   return (
     <div className="container mx-auto p-4">
-      {/* Welcome Message */}
-      <h1 className="text-3xl font-bold text-blue-600 mb-4">Welcome, {username}!</h1>
+      <h1 className="text-2xl font-bold mb-4">Inventory Management</h1>
 
       {/* Product Table */}
-      <h2 className="text-2xl font-bold mb-4">Inventory Management</h2>
       {loading ? (
         <p>Loading...</p>
       ) : (
@@ -103,13 +79,21 @@ const Home = () => {
           <tbody>
             {products.map((product) => (
               <tr key={product.id}>
-                <td className="border border-gray-300 px-4 py-2">{product.id}</td>
-                <td className="border border-gray-300 px-4 py-2">{product.name}</td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {product.id}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {product.name}
+                </td>
                 <td className="border border-gray-300 px-4 py-2">
                   {product.description || "N/A"}
                 </td>
-                <td className="border border-gray-300 px-4 py-2">{product.stock}</td>
-                <td className="border border-gray-300 px-4 py-2">{product.price.toFixed(2)}</td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {product.stock}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {product.price.toFixed(2)}
+                </td>
                 <td className="border border-gray-300 px-4 py-2">
                   <button
                     className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
@@ -123,7 +107,6 @@ const Home = () => {
           </tbody>
         </table>
       )}
-
       {/* Add Product Form */}
       <h2 className="text-xl font-bold mt-6">Add Product</h2>
       <form onSubmit={addProduct} className="mt-4 space-y-4">
@@ -177,4 +160,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default Inventory;
